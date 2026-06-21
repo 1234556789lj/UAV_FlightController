@@ -102,15 +102,12 @@ void Power_Task(void *pvParameters)
 void Flight_Motor_Task(void *pvParameters)
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
+    // 初始化mpu6050
+    Int_mpu6050_init();
     while (1)
     {
-
-        // 1.设置电机转速
-        left_top_motor.speed = 400; // 设置电机1速度为300
-
-        // 启动电机
-        // Int_Motor_Start(&right_bottom_motor);
-        // Int_Motor_Start(&left_top_motor);
+        // 读取欧拉角
+        App_flight_get_euler_angle();
 
         // 每秒执行一次，使用vtaskdelayuntil更精确地控制时间
         vTaskDelayUntil(&xLastWakeTime, FLIGHT_MOTOR_TASK_PERIOD);

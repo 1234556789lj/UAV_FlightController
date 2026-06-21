@@ -29,4 +29,32 @@ typedef enum
     FLIGHT_FAIL = 3        // 故障状态
 } Flight_State;
 
+// 角速度结构体
+typedef struct
+{
+    int16_t gyro_x; // 横滚角，roll，往右飞为正，往左飞为负
+    int16_t gyro_y; // 俯仰角，pitch，往前飞为正，往后飞为负
+    int16_t gyro_z; // 偏航角，yaw，逆时针为正，顺时针为负
+} Gyro_Data;
+// 加速度结构体
+typedef struct
+{
+    int16_t acc_x; // 朝前加速度为正
+    int16_t acc_y; // 朝左加速度为正
+    int16_t acc_z; // 朝上加速度为正
+} Acc_Data;
+// 陀螺仪结构体
+typedef struct
+{
+    Gyro_Data gyro;
+    Acc_Data acc;
+} Gyro_Acc_Data;
+// 解算后的欧拉角结构体
+typedef struct
+{
+    int16_t yaw;
+    int16_t pitch;
+    int16_t roll;
+} Euler_Data;
+
 #endif /* __COM_CONFIG_H */

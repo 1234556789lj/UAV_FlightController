@@ -24,11 +24,13 @@
 01_flight_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h
 01_flight_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 01_flight_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
+01_flight_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_i2c.h
 01_flight_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 01_flight_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 01_flight_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 01_flight_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 01_flight_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+01_flight_hal\main.o: ../Core/Inc/i2c.h
 01_flight_hal\main.o: ../Core/Inc/spi.h
 01_flight_hal\main.o: ../Core/Inc/tim.h
 01_flight_hal\main.o: ../Core/Inc/usart.h
@@ -52,3 +54,7 @@
 01_flight_hal\main.o: ./interface/Int_SI24R1.h
 01_flight_hal\main.o: ./application/App_receive_data.h
 01_flight_hal\main.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
+01_flight_hal\main.o: ./application/App_flight.h
+01_flight_hal\main.o: ./interface/Int_mpu6050.h
+01_flight_hal\main.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
+01_flight_hal\main.o: ./common/Com_filter.h

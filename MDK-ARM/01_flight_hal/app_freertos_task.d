@@ -35,6 +35,7 @@
 01_flight_hal\app_freertos_task.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h
 01_flight_hal\app_freertos_task.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 01_flight_hal\app_freertos_task.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
+01_flight_hal\app_freertos_task.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_i2c.h
 01_flight_hal\app_freertos_task.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 01_flight_hal\app_freertos_task.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 01_flight_hal\app_freertos_task.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
@@ -51,3 +52,8 @@
 01_flight_hal\app_freertos_task.o: ../Core/Inc/spi.h
 01_flight_hal\app_freertos_task.o: application\App_receive_data.h
 01_flight_hal\app_freertos_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
+01_flight_hal\app_freertos_task.o: application\App_flight.h
+01_flight_hal\app_freertos_task.o: ./interface/Int_mpu6050.h
+01_flight_hal\app_freertos_task.o: ../Core/Inc/i2c.h
+01_flight_hal\app_freertos_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
+01_flight_hal\app_freertos_task.o: ./common/Com_filter.h

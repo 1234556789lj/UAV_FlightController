@@ -10,6 +10,8 @@
 #include "Int_LED.h"
 #include "Int_SI24R1.h"
 #include "App_receive_data.h"
+#include "App_flight.h"
+#include "Int_mpu6050.h"
 
 // 启动freeRTOS操作系统
 void App_freeRTOS_Start(void);
