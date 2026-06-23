@@ -5,6 +5,8 @@
 #include "com_config.h"
 #include "Com_debug.h"
 #include "Com_filter.h"
+#include "math.h"
+#include "Com_imu.h"
 
 /**
  * @brief 获取欧拉角

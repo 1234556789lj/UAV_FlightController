@@ -52,9 +52,9 @@ typedef struct
 // 解算后的欧拉角结构体
 typedef struct
 {
-    int16_t yaw;
-    int16_t pitch;
-    int16_t roll;
+    float yaw;
+    float pitch;
+    float roll;
 } Euler_Data;
 
 #endif /* __COM_CONFIG_H */

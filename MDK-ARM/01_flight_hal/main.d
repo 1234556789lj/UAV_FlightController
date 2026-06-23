@@ -58,3 +58,5 @@
 01_flight_hal\main.o: ./interface/Int_mpu6050.h
 01_flight_hal\main.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
 01_flight_hal\main.o: ./common/Com_filter.h
+01_flight_hal\main.o: D:\keil5\ARM\ARMCC\Bin\..\include\math.h
+01_flight_hal\main.o: ./common/Com_imu.h

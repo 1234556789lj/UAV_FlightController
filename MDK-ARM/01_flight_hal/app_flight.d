@@ -48,3 +48,5 @@
 01_flight_hal\app_flight.o: ./common/Com_debug.h
 01_flight_hal\app_flight.o: ../Core/Inc/usart.h
 01_flight_hal\app_flight.o: ./common/Com_filter.h
+01_flight_hal\app_flight.o: D:\keil5\ARM\ARMCC\Bin\..\include\math.h
+01_flight_hal\app_flight.o: ./common/Com_imu.h

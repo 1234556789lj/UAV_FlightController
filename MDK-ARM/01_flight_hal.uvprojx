@@ -905,6 +905,16 @@
               <FileType>5</FileType>
               <FilePath>.\common\Com_filter.h</FilePath>
             </File>
+            <File>
+              <FileName>Com_imu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\common\Com_imu.c</FilePath>
+            </File>
+            <File>
+              <FileName>Com_imu.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\common\Com_imu.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

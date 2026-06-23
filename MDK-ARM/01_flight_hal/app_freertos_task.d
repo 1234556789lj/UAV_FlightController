@@ -57,3 +57,5 @@
 01_flight_hal\app_freertos_task.o: ../Core/Inc/i2c.h
 01_flight_hal\app_freertos_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
 01_flight_hal\app_freertos_task.o: ./common/Com_filter.h
+01_flight_hal\app_freertos_task.o: D:\keil5\ARM\ARMCC\Bin\..\include\math.h
+01_flight_hal\app_freertos_task.o: ./common/Com_imu.h
