@@ -16,5 +16,5 @@ void Int_Motor_SetSpeed(Motor_St *motor)
     else
     {
         __HAL_TIM_SET_COMPARE(motor->tim, motor->channel, motor->speed);
-        }
+    }
 }

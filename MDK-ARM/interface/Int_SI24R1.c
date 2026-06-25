@@ -117,7 +117,7 @@ void Int_SI24R1_TX_Mode(void)
 
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + EN_AA, 0x01);	   // 使能接收通道0自动应答
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + EN_RXADDR, 0x01);  // 使能接收通道0
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + SETUP_RETR, 0x0a); // 自动重发延时等待250us+86us，自动重发10次
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + SETUP_RETR, 0x5a); // 自动重发延时等待250us+86us，自动重发5次
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_CH, 40);		   // 选择射频通道0x40
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_SETUP, 0x06);   // 数据传输率1Mbps，发射功率4dBm
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + CONFIG, 0x0e);	   // CRC使能，16位CRC校验，上电
@@ -133,13 +133,20 @@ void Int_SI24R1_TX_Mode(void)
 uint8_t Int_SI24R1_RxPacket(uint8_t *rxbuf)
 {
 	uint8_t state;
-	state = Int_SI24R1_Read_Reg(STATUS);					// 读取状态寄存器的值
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, state); // 清除RX_DS中断标志
+	state = Int_SI24R1_Read_Reg(STATUS); // 读取状态寄存器的值
+	// Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, state); // 清除RX_DS中断标志
 
 	if (state & RX_DR) // 接收到数据
 	{
-		Int_SI24R1_Read_Buf(SI24R1_READ_REG + RD_RX_PLOAD, rxbuf, TX_PLOAD_WIDTH);	 // 读取数据
-		Int_SI24R1_Write_Reg((uint8_t)(SI24R1_WRITE_REG + FLUSH_RX), (uint8_t)0xff); // 清除RX FIFO寄存器
+		Int_SI24R1_Read_Buf(SI24R1_READ_REG + RD_RX_PLOAD, rxbuf, TX_PLOAD_WIDTH); // 读取数据
+		// Int_SI24R1_Write_Reg((uint8_t)(SI24R1_WRITE_REG + FLUSH_RX), (uint8_t)0xff); // 清除RX FIFO寄存器
+
+		// 正确清空
+		CS_LOW;		  // 片选拉低
+		SPI_RW(0xE2); // 发送 0xE2
+		CS_HIGH;	  // 片选拉高
+
+		Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, state); // 清除RX_DS中断标志
 		return 0;
 	}
 	return 1; // 没收到任何数据

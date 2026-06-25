@@ -1,11 +1,5 @@
 #include "App_freeRTOS_Task.h"
 
-// 内存管理，创建无人机的四个电机，左右前后四个电机，使用结构体封装电机数据，包含定时器句柄、定时器通道和电机速度
-Motor_St left_top_motor = {&htim3, TIM_CHANNEL_1, 200};     // 电机1，初始速度200
-Motor_St left_bottom_motor = {&htim4, TIM_CHANNEL_4, 200};  // 电机3，初始速度200
-Motor_St right_top_motor = {&htim2, TIM_CHANNEL_2, 200};    // 电机2，初始速度200
-Motor_St right_bottom_motor = {&htim1, TIM_CHANNEL_3, 200}; // 电机4，初始速度200
-
 // LED结构体
 LED_St left_top_led = {LED1_GPIO_Port, LED1_Pin};
 LED_St right_top_led = {LED2_GPIO_Port, LED2_Pin};
@@ -19,7 +13,7 @@ Remote_State remote_state = REMOTE_DISCONNECTED;
 Flight_State flight_state = FLIGHT_IDLE;
 
 // 遥控器数据
-extern Remote_Data remote_data;
+Remote_Data remote_data = {.thr = 0, .yaw = 500, .pitch = 500, .roll = 500, .shutdown = 0, .fix_height = 0};
 
 // 电源管理任务
 //  使用宏定义代替电源任务栈大小，优先级和任务句柄
@@ -103,11 +97,15 @@ void Flight_Motor_Task(void *pvParameters)
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     // 初始化mpu6050
-    Int_mpu6050_init();
+    App_flight_init();
     while (1)
     {
-        // 读取欧拉角
+        // 1.根据mpu6050测量的数据，姿态解算得到欧拉角
         App_flight_get_euler_angle();
+        // 2.得到欧拉角后，进行pid计算
+        App_flight_pid_process();
+        // 3.根据pid计算的结果，控制电机转速
+        App_flight_control_motor();
 
         // 每秒执行一次，使用vtaskdelayuntil更精确地控制时间
         vTaskDelayUntil(&xLastWakeTime, FLIGHT_MOTOR_TASK_PERIOD);

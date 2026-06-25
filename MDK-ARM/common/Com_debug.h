@@ -5,7 +5,7 @@
 #include "stdio.h"
 
 // 如果一直调用打印日志会占用CPU资源，使用宏定义控制是否开启日志输出
-#define DEBUG_ENABLE 1
+// #define DEBUG_ENABLE 1
 
 #if DEBUG_ENABLE
 // 使用宏定义打印输出bug所在行数和文件名

@@ -1,12 +1,13 @@
 #include "App_receive_data.h"
 
-Remote_Data remote_data = {0};
 uint8_t rx_buff[TX_PLOAD_WIDTH] = {0};
 
 // 遥控器连接状态
 extern Remote_State remote_state;
 // 飞行状态
 extern Flight_State flight_state;
+// 遥控器数据
+extern Remote_Data remote_data;
 // 油门状态
 Thr_State thr_state = FREE;
 // 记录最大max油门时间
@@ -149,7 +150,7 @@ uint8_t App_receive_data(void)
     remote_data.fix_height = rx_buff[12];
 
     // 串口打印
-    debug_printf(":%d,%d,%d,%d,%d,%d\n", remote_data.thr, remote_data.yaw, remote_data.pitch, remote_data.roll, remote_data.shutdown, remote_data.fix_height);
+    // debug_printf(":%d,%d,%d,%d,%d,%d\n", remote_data.thr, remote_data.yaw, remote_data.pitch, remote_data.roll, remote_data.shutdown, remote_data.fix_height);
 
     return 0;
 }

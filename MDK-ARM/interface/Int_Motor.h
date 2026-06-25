@@ -9,7 +9,7 @@ typedef struct
 {
     TIM_HandleTypeDef *tim; // 定时器句柄
     uint16_t channel;       // 定时器通道
-    uint16_t speed;         // 电机速度，范围0-1000，对应定时器的周期
+    int16_t speed;          // 电机速度，范围0-1000，对应定时器的周期
 
 } Motor_St;
 

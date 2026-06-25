@@ -50,3 +50,10 @@
 01_flight_hal\app_flight.o: ./common/Com_filter.h
 01_flight_hal\app_flight.o: D:\keil5\ARM\ARMCC\Bin\..\include\math.h
 01_flight_hal\app_flight.o: ./common/Com_imu.h
+01_flight_hal\app_flight.o: ./common/Com_pid.h
+01_flight_hal\app_flight.o: application\App_receive_data.h
+01_flight_hal\app_flight.o: ./interface/Int_SI24R1.h
+01_flight_hal\app_flight.o: ../Core/Inc/spi.h
+01_flight_hal\app_flight.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
+01_flight_hal\app_flight.o: ./interface/Int_Motor.h
+01_flight_hal\app_flight.o: ../Core/Inc/tim.h
