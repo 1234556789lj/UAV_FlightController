@@ -98,10 +98,10 @@ void Int_SI24R1_RX_Mode(void)
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + EN_RXADDR, 0x01);					   // 使能接收通道0
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_CH, 40);							   // 选择射频通道0x40
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RX_PW_P0, TX_PLOAD_WIDTH);			   // 接收通道0选择和发送通道相同有效数据宽度
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_SETUP, 0x06);					   // 数据传输率1Mbps，发射功率4dBm
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_SETUP, 0x0f);					   // 数据传输率1 Mbps
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + CONFIG, 0x0f);						   // CRC使能，16位CRC校验，上电，接收模式
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, 0xff);						   // 清除所有的中断标志位
-	CE_HIGH;																	   // 拉高CE启动接收设备
+	// Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, 0xff);						   // 清除所有的中断标志位
+	CE_HIGH; // 拉高CE启动接收设备
 }
 
 /********************************************************
@@ -117,9 +117,9 @@ void Int_SI24R1_TX_Mode(void)
 
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + EN_AA, 0x01);	   // 使能接收通道0自动应答
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + EN_RXADDR, 0x01);  // 使能接收通道0
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + SETUP_RETR, 0x5a); // 自动重发延时等待250us+86us，自动重发5次
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + SETUP_RETR, 0x0a); // 自动重发延时等待250us+86us，自动重发5次
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_CH, 40);		   // 选择射频通道0x40
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_SETUP, 0x06);   // 数据传输率1Mbps，发射功率4dBm
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_SETUP, 0x0f);   // 数据传输率1Mbps，发射功率4dBm
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + CONFIG, 0x0e);	   // CRC使能，16位CRC校验，上电
 	CE_HIGH;
 }
@@ -133,20 +133,14 @@ void Int_SI24R1_TX_Mode(void)
 uint8_t Int_SI24R1_RxPacket(uint8_t *rxbuf)
 {
 	uint8_t state;
-	state = Int_SI24R1_Read_Reg(STATUS); // 读取状态寄存器的值
-	// Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, state); // 清除RX_DS中断标志
+	state = Int_SI24R1_Read_Reg(STATUS);					// 读取状态寄存器的值
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, state); // 清除RX_DS中断标志
 
 	if (state & RX_DR) // 接收到数据
 	{
 		Int_SI24R1_Read_Buf(SI24R1_READ_REG + RD_RX_PLOAD, rxbuf, TX_PLOAD_WIDTH); // 读取数据
-		// Int_SI24R1_Write_Reg((uint8_t)(SI24R1_WRITE_REG + FLUSH_RX), (uint8_t)0xff); // 清除RX FIFO寄存器
+		Int_SI24R1_Write_Reg(FLUSH_RX, 0xff);									   // 清除RX FIFO寄存器
 
-		// 正确清空
-		CS_LOW;		  // 片选拉低
-		SPI_RW(0xE2); // 发送 0xE2
-		CS_HIGH;	  // 片选拉高
-
-		Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, state); // 清除RX_DS中断标志
 		return 0;
 	}
 	return 1; // 没收到任何数据
@@ -160,32 +154,52 @@ uint8_t Int_SI24R1_RxPacket(uint8_t *rxbuf)
 uint8_t Int_SI24R1_TxPacket(uint8_t *txbuf)
 {
 	uint8_t state;
-	CE_LOW;													  // CE拉低，使能SI24R1配置
-	Int_SI24R1_Write_Buf(WR_TX_PLOAD, txbuf, TX_PLOAD_WIDTH); // 写数据到TX FIFO,32个字节
-	CE_HIGH;												  // CE置高，使能发送
+	uint16_t timeout = 1000; // 超时计数（可根据重发延时调整）
 
-	// 没有使用中断判断是否发送完成  => 使用轮询读取状态标志位
-	// while (IRQ == 1)
-	// 	;										 // 等待发送完成
+	CE_LOW;													  // CE拉低，使能配置
+	Int_SI24R1_Write_Buf(WR_TX_PLOAD, txbuf, TX_PLOAD_WIDTH); // 写入TX FIFO
+	CE_HIGH;												  // CE置高，启动发送
 
-	state = Int_SI24R1_Read_Reg(STATUS); // 读取状态寄存器的值
-	while (((state & TX_DS) == 0) && ((state & MAX_RT) == 0))
+	/* 等待发送完成或达到最大重发次数，加入超时保护 */
+	state = Int_SI24R1_Read_Reg(STATUS);
+	while (((state & TX_DS) == 0) && ((state & MAX_RT) == 0) && (--timeout))
 	{
-		state = Int_SI24R1_Read_Reg(STATUS);
 		vTaskDelay(1);
+		state = Int_SI24R1_Read_Reg(STATUS);
 	}
 
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, state); // 清除TX_DS或MAX_RT中断标志
-	if (state & MAX_RT)										// 达到最大重发次数
+	/* 超时处理 */
+	if (timeout == 0)
 	{
-		Int_SI24R1_Write_Reg(FLUSH_TX, 0xff); // 清除TX FIFO寄存器
+		CE_LOW;
+		Int_SI24R1_Write_Reg(FLUSH_TX, 0xff); // 清空TX FIFO
+		CE_HIGH;
+		Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, TX_DS | MAX_RT); // 清除可能的中断
+		return 1;														 // 超时视为发送失败
+	}
+
+	/* 清除 TX_DS 或 MAX_RT 中断标志，注意只清除这两个位，保留其他中断（如 RX_DR） */
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, state & (TX_DS | MAX_RT));
+
+	if (state & MAX_RT) // 达到最大重发次数
+	{
+		CE_LOW;
+		Int_SI24R1_Write_Reg(FLUSH_TX, 0xff); // 清空TX FIFO
+		CE_HIGH;
 		return 1;
 	}
-	if (state & TX_DS) // 发送完成
+
+	if (state & TX_DS) // 发送成功
 	{
+		/*
+		 * 如果系统是双向通信（无人机与遥控器），强烈建议在此切回接收模式
+		 * 取消下面注释即可自动切换：
+		 * Int_SI24R1_RX_Mode();
+		 */
 		return 0;
 	}
-	return 1; // 发送失败
+
+	return 1; // 其他未知情况，返回失败
 }
 
 /********************************************************

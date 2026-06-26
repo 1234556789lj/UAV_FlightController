@@ -10,6 +10,7 @@
 #include "Com_pid.h"
 #include "App_receive_data.h"
 #include "Int_Motor.h"
+#include "Int_VL53L1X.h"
 
 /**
  * @brief 飞控任务初始化 MPU6050初始化    启动电机
@@ -34,4 +35,9 @@ void App_flight_pid_process(void);
  */
 void App_flight_control_motor(void);
 
+/**
+ * @brief 定高pid处理
+ *
+ */
+void App_flight_fix_height_PID_process(void);
 #endif

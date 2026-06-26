@@ -60,10 +60,10 @@ void Int_mpu6050_calibrate(void)
         gyro_y_sum += (data.gyro.gyro_y - 0);
         gyro_z_sum += (data.gyro.gyro_z - 0);
 
-        acc_x_sum += (current_acc.acc_x - 0);
-        acc_y_sum += (current_acc.acc_y - 0);
+        acc_x_sum += (data.acc.acc_x - 0);
+        acc_y_sum += (data.acc.acc_y - 0);
         // z轴初始化加速度为1g
-        acc_z_sum += (current_acc.acc_z - 16384);
+        acc_z_sum += (data.acc.acc_z - 16384);
         // 添加延迟多次测量
         vTaskDelay(6);
     }

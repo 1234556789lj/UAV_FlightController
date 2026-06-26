@@ -46,6 +46,10 @@
 "01_flight_hal\int_led.o"
 "01_flight_hal\int_si24r1.o"
 "01_flight_hal\int_mpu6050.o"
+"01_flight_hal\vl53l1_platform.o"
+"01_flight_hal\vl53l1x_api.o"
+"01_flight_hal\vl53l1x_calibration.o"
+"01_flight_hal\int_vl53l1x.o"
 --library_type=microlib --strict --scatter "01_flight_hal\01_flight_hal.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

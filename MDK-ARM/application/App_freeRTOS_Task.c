@@ -15,6 +15,9 @@ Flight_State flight_state = FLIGHT_IDLE;
 // 遥控器数据
 Remote_Data remote_data = {.thr = 0, .yaw = 500, .pitch = 500, .roll = 500, .shutdown = 0, .fix_height = 0};
 
+// 定高24ms测量一次
+uint8_t fix_height_counter = 0;
+
 // 电源管理任务
 //  使用宏定义代替电源任务栈大小，优先级和任务句柄
 void Power_Task(void *pvParameters);
@@ -42,7 +45,7 @@ TaskHandle_t ledStatusTaskHandle = NULL;
 // 通信任务
 void Com_Task(void *pvParameters);
 #define COM_TASK_STACK_SIZE 128
-#define COM_TASK_PRIORITY 2
+#define COM_TASK_PRIORITY 3
 #define COM_TASK_PERIOD 6
 TaskHandle_t comTaskHandle = NULL;
 
@@ -96,7 +99,7 @@ void Power_Task(void *pvParameters)
 void Flight_Motor_Task(void *pvParameters)
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    // 初始化mpu6050
+    // 初始化mpu6050，初始化电机，初始化激光测距仪
     App_flight_init();
     while (1)
     {
@@ -104,8 +107,22 @@ void Flight_Motor_Task(void *pvParameters)
         App_flight_get_euler_angle();
         // 2.得到欧拉角后，进行pid计算
         App_flight_pid_process();
-        // 3.根据pid计算的结果，控制电机转速
+        // 3.判断是否进入定高
+        if (flight_state == FLIGHT_FIX_HEIGHT)
+        {
+            fix_height_counter++;
+            if (fix_height_counter >= 4)
+            {
+                // 定高模式处理
+                App_flight_fix_height_PID_process();
+                fix_height_counter = 0;
+            }
+        }
+
+        // 4.根据pid计算的结果，控制电机转速
         App_flight_control_motor();
+        // 打印激光测距仪的距离值
+        // uint16_t distance = Int_VL53L1X_GetDistance();
 
         // 每秒执行一次，使用vtaskdelayuntil更精确地控制时间
         vTaskDelayUntil(&xLastWakeTime, FLIGHT_MOTOR_TASK_PERIOD);

@@ -15,6 +15,9 @@ uint32_t enter_max_time = 0;
 // 记录最小min油门时间
 uint32_t enter_min_time = 0;
 
+// 按下定高后的高度
+uint16_t fix_height = 0;
+
 uint8_t retry_count = 0;
 /**
  * @brief 解锁函数,空闲解锁到正常状态，0: 解锁成功，1: 解锁失败
@@ -127,7 +130,7 @@ uint8_t App_receive_data(void)
     }
 
     // 2.帧尾校验
-    uint32_t sum;
+    uint32_t sum = 0;
     for (uint8_t i = 0; i < 13; i++)
     {
         sum += rx_buff[i];
@@ -176,6 +179,7 @@ void App_process_flight_state(void)
         {
             flight_state = FLIGHT_FIX_HEIGHT;
             remote_data.fix_height = 0;
+            fix_height = Int_VL53L1X_GetDistance();
         }
         // 判断失联进入故障
         if (remote_state == REMOTE_DISCONNECTED)

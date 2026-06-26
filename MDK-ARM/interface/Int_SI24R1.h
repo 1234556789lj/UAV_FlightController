@@ -15,7 +15,8 @@
 // CE信号
 #define CE_HIGH HAL_GPIO_WritePin(SI_EN_GPIO_Port, SI_EN_Pin, GPIO_PIN_SET)
 #define CE_LOW HAL_GPIO_WritePin(SI_EN_GPIO_Port, SI_EN_Pin, GPIO_PIN_RESET)
-
+// 选择使用的射频通道
+#define CHANNEL 40
 #define TX_ADR_WIDTH 5    // 5字节的地址宽度
 #define TX_PLOAD_WIDTH 17 // 32字节的用户数据宽度
 

@@ -54,9 +54,14 @@
 01_flight_hal\main.o: ./interface/Int_SI24R1.h
 01_flight_hal\main.o: ./application/App_receive_data.h
 01_flight_hal\main.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
+01_flight_hal\main.o: ./interface/fix_height/Int_VL53L1X.h
+01_flight_hal\main.o: ./interface/fix_height/vl53l1_platform.h
+01_flight_hal\main.o: ./interface/fix_height/vl53l1_types.h
+01_flight_hal\main.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
+01_flight_hal\main.o: ./interface/fix_height/VL53L1X_api.h
+01_flight_hal\main.o: ./interface/fix_height/VL53L1X_calibration.h
 01_flight_hal\main.o: ./application/App_flight.h
 01_flight_hal\main.o: ./interface/Int_mpu6050.h
-01_flight_hal\main.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
 01_flight_hal\main.o: ./common/Com_filter.h
 01_flight_hal\main.o: D:\keil5\ARM\ARMCC\Bin\..\include\math.h
 01_flight_hal\main.o: ./common/Com_imu.h

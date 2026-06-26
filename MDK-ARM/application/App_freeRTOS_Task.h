@@ -12,6 +12,7 @@
 #include "App_receive_data.h"
 #include "App_flight.h"
 #include "Int_mpu6050.h"
+#include "Int_VL53L1X.h"
 
 // 启动freeRTOS操作系统
 void App_freeRTOS_Start(void);

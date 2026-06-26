@@ -47,3 +47,10 @@
 01_flight_hal\app_receive_data.o: ./freeRTOS/include/list.h
 01_flight_hal\app_receive_data.o: ./common/com_config.h
 01_flight_hal\app_receive_data.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
+01_flight_hal\app_receive_data.o: ./interface/fix_height/Int_VL53L1X.h
+01_flight_hal\app_receive_data.o: ./interface/fix_height/vl53l1_platform.h
+01_flight_hal\app_receive_data.o: ./interface/fix_height/vl53l1_types.h
+01_flight_hal\app_receive_data.o: D:\keil5\ARM\ARMCC\Bin\..\include\stdlib.h
+01_flight_hal\app_receive_data.o: ../Core/Inc/i2c.h
+01_flight_hal\app_receive_data.o: ./interface/fix_height/VL53L1X_api.h
+01_flight_hal\app_receive_data.o: ./interface/fix_height/VL53L1X_calibration.h

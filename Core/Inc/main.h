@@ -61,6 +61,8 @@ void Error_Handler(void);
 #define SPI1_NSS_GPIO_Port GPIOA
 #define power_key_Pin GPIO_PIN_2
 #define power_key_GPIO_Port GPIOB
+#define VX_XSHUT_Pin GPIO_PIN_12
+#define VX_XSHUT_GPIO_Port GPIOB
 #define LED4_Pin GPIO_PIN_14
 #define LED4_GPIO_Port GPIOB
 #define LED3_Pin GPIO_PIN_15

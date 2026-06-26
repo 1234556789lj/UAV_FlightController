@@ -6,6 +6,8 @@
 #include "string.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "Int_VL53L1X.h"
+
 // 定义帧头校验3个字节
 #define FRAME_HEAD_CHECK1 'w'
 #define FRAME_HEAD_CHECK2 'r'

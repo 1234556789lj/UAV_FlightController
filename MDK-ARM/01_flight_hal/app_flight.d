@@ -55,5 +55,10 @@
 01_flight_hal\app_flight.o: ./interface/Int_SI24R1.h
 01_flight_hal\app_flight.o: ../Core/Inc/spi.h
 01_flight_hal\app_flight.o: D:\keil5\ARM\ARMCC\Bin\..\include\string.h
+01_flight_hal\app_flight.o: ./interface/fix_height/Int_VL53L1X.h
+01_flight_hal\app_flight.o: ./interface/fix_height/vl53l1_platform.h
+01_flight_hal\app_flight.o: ./interface/fix_height/vl53l1_types.h
+01_flight_hal\app_flight.o: ./interface/fix_height/VL53L1X_api.h
+01_flight_hal\app_flight.o: ./interface/fix_height/VL53L1X_calibration.h
 01_flight_hal\app_flight.o: ./interface/Int_Motor.h
 01_flight_hal\app_flight.o: ../Core/Inc/tim.h
