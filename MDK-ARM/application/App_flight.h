@@ -46,4 +46,9 @@ void App_flight_fix_height_PID_process(void);
  * @note 在飞行状态切换（解锁/加锁/故障）时调用
  */
 void App_flight_reset_all_pid(void);
+
+/**
+ * @brief 准备遥测数据（回传给遥控器显示）
+ */
+void App_flight_prepare_telemetry(Telemetry_Data *telem);
 #endif

@@ -192,30 +192,79 @@ void LED_Status_Task(void *pvParameters)
     }
 }
 uint8_t com_data[TX_PLOAD_WIDTH] = {0};
+
+/**
+ * @brief 将遥测结构体打包为 17 字节传输帧
+ */
+static void Com_pack_telemetry(const Telemetry_Data *t, uint8_t *buf)
+{
+    uint32_t sum = 0;
+    uint8_t i;
+
+    // 帧头
+    buf[0] = 'd';
+    buf[1] = 'a';
+    buf[2] = 't';
+
+    // 姿态角 (int16, 大端)
+    buf[3]  = (uint8_t)(t->pitch >> 8);
+    buf[4]  = (uint8_t)(t->pitch);
+    buf[5]  = (uint8_t)(t->roll >> 8);
+    buf[6]  = (uint8_t)(t->roll);
+    buf[7]  = (uint8_t)(t->yaw >> 8);
+    buf[8]  = (uint8_t)(t->yaw);
+
+    // 高度 (uint16, mm, 大端)
+    buf[9]  = (uint8_t)(t->altitude >> 8);
+    buf[10] = (uint8_t)(t->altitude);
+
+    // 飞行状态 / 错误计数
+    buf[11] = t->flight_state;
+    buf[12] = t->errors;
+
+    // 校验和（前13字节累加）
+    for (i = 0; i < 13; i++)
+    {
+        sum += buf[i];
+    }
+    buf[13] = (uint8_t)(sum >> 24);
+    buf[14] = (uint8_t)(sum >> 16);
+    buf[15] = (uint8_t)(sum >> 8);
+    buf[16] = (uint8_t)(sum);
+}
+
 // 通信任务
 void Com_Task(void *pvParameters)
 {
-    // 获取当前系统时间
     TickType_t xLastWakeTime = xTaskGetTickCount();
+    Telemetry_Data telem;
 
     while (1)
     {
-        // 调用si24r1接收数据，处理接收到的数据
-        App_receive_data();
+        // 1. 接收遥控器数据
+        uint8_t rx_ok = (App_receive_data() == 0);
 
-        // 处理关机命令
+        // 2. 收到有效数据 → 回传遥测
+        if (rx_ok)
+        {
+            App_flight_prepare_telemetry(&telem);
+            Com_pack_telemetry(&telem, com_data);
+
+            Int_SI24R1_TX_Mode();
+            Int_SI24R1_TxPacket(com_data);
+            Int_SI24R1_RX_Mode();
+        }
+
+        // 3. 处理关机命令
         if (remote_data.shutdown == 1)
         {
-            // //方式1直接调用关机函数
-            // Int_IP5305T_Shutdown();
-
-            // 方式2，使用freertos直接任务通知，通知电源任务，执行关机
             xTaskNotifyGive(powerTaskHandle);
         }
-        // 处理飞行状态
+
+        // 4. 处理飞行状态
         App_process_flight_state();
 
-        // 每十秒执行一次，使用vtaskdelayuntil更精确地控制时间
+        // 精确延时 6ms
         vTaskDelayUntil(&xLastWakeTime, COM_TASK_PERIOD);
     }
 }

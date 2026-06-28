@@ -284,3 +284,16 @@ void App_flight_reset_all_pid(void)
     Com_pid_reset(&gyro_z_pid);
     Com_pid_reset(&fix_height_pid);
 }
+
+/**
+ * @brief 准备遥测数据（回传给遥控器显示）
+ */
+void App_flight_prepare_telemetry(Telemetry_Data *telem)
+{
+    telem->pitch        = (int16_t)(euler_angle.pitch * 100.0f);
+    telem->roll         = (int16_t)(euler_angle.roll  * 100.0f);
+    telem->yaw          = (int16_t)(euler_angle.yaw   * 100.0f);
+    telem->altitude     = Int_VL53L1X_GetDistance();
+    telem->flight_state = (uint8_t)flight_state;
+    telem->errors       = (uint8_t)Int_mpu6050_GetErrorCount();
+}

@@ -232,13 +232,13 @@ uint8_t Int_SI24R1_Check(void)
 
 void Int_SI24R1_Init(void)
 {
-	// 上电后芯片延迟
-	vTaskDelay(200);
+	// 上电后芯片延迟（此处运行在 main()，调度器尚未启动，必须用 HAL_Delay）
+	HAL_Delay(200);
 	// 校验检测
 	while (Int_SI24R1_Check() == 1)
 	{
 		// 每两次检测间隔10ms
-		vTaskDelay(10);
+		HAL_Delay(10);
 	}
 	// 初始化完成，设置默认模式为接收
 	Int_SI24R1_RX_Mode();

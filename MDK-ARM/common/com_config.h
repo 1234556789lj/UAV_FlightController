@@ -57,4 +57,15 @@ typedef struct
     float roll;
 } Euler_Data;
 
+// 遥测回传数据（17字节，按 TX_PLOAD_WIDTH 打包）
+typedef struct
+{
+    int16_t  pitch;        // 俯仰角 * 100
+    int16_t  roll;         // 横滚角 * 100
+    int16_t  yaw;          // 偏航角 * 100
+    uint16_t altitude;     // 激光测距高度 mm
+    uint8_t  flight_state; // 飞行状态
+    uint8_t  errors;       // 错误计数
+} Telemetry_Data;
+
 #endif /* __COM_CONFIG_H */
