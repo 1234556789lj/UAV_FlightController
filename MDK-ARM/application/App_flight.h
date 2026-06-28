@@ -40,4 +40,10 @@ void App_flight_control_motor(void);
  *
  */
 void App_flight_fix_height_PID_process(void);
+
+/**
+ * @brief 复位所有PID（清零积分和误差）
+ * @note 在飞行状态切换（解锁/加锁/故障）时调用
+ */
+void App_flight_reset_all_pid(void);
 #endif

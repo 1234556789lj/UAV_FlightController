@@ -14,25 +14,28 @@ Gyro_Data last_data = {0};
 Euler_Data euler_angle = {0};
 // 角速度累加
 float gyro_z_sum = 0;
-// PID的调参是先调节内环再调节外环
-// 俯仰角PID结构体  => 后续需要进行专业的PID调参
-PID_st pitch_pid = {.kp = -6.00, .ki = 0.00, .kd = 0.00};
-// Y轴角速度结构体 => 对应俯仰角的内环
-// 极性问题 => 参数的正负可以调节 => 作用于电机的时候 正负
-PID_st gyro_y_pid = {.kp = 2.00, .ki = 0.00, .kd = 0.10};
+// PID调参顺序：先调内环(角速度) → 再调外环(角度)
+// 误差方向：desire - measure（目标值 - 测量值）
+// ========== 俯仰角PID ==========
+// 外环：角度环 → 输出为内环目标角速度
+PID_st pitch_pid = {.kp = 6.00, .ki = 0.50, .kd = 0.00};
+// 内环：Y轴角速度环 → 输出直接参与电机混控
+PID_st gyro_y_pid = {.kp = -3.00, .ki = 0.30, .kd = -0.30};
 
-// 横滚角PID结构体
-PID_st roll_pid = {.kp = -6.00, .ki = 0.00, .kd = 0.00};
-// X轴角速度结构体 => 对应横滚角的内环
-PID_st gyro_x_pid = {.kp = 2.00, .ki = 0.00, .kd = 0.10};
+// ========== 横滚角PID ==========
+// 外环：角度环 → 输出为内环目标角速度
+PID_st roll_pid = {.kp = 6.00, .ki = 0.50, .kd = 0.00};
+// 内环：X轴角速度环 → 输出直接参与电机混控
+PID_st gyro_x_pid = {.kp = -2.00, .ki = 0.30, .kd = -0.30};
 
-// 偏航角PID结构体
-PID_st yaw_pid = {.kp = -3.00, .ki = 0.00, .kd = 0.00};
-// z轴角速度结构体 => 对应横滚角的内环
-PID_st gyro_z_pid = {.kp = -5.00, .ki = 0.00, .kd = 0.00};
+// ========== 偏航角PID ==========
+// 外环：角度环 → 输出为内环目标角速度
+PID_st yaw_pid = {.kp = 3.00, .ki = 0.00, .kd = 0.00};
+// 内环：Z轴角速度环 → 输出经Com_limit(±100)后参与电机混控
+PID_st gyro_z_pid = {.kp = 5.00, .ki = 0.00, .kd = 0.00};
 
-// 定高pid结构体
-PID_st fix_height_pid = {.kp = -0.50, .ki = 0.00, .kd = -0.30};
+// ========== 定高PID（单环，24ms执行一次）==========
+PID_st fix_height_pid = {.kp = 0.50, .ki = 0.05, .kd = 0.30};
 
 // 电机结构体,创建无人机的四个电机，左右前后四个电机，使用结构体封装电机数据，包含定时器句柄、定时器通道和电机速度
 Motor_St left_top_motor = {.tim = &htim3, .channel = TIM_CHANNEL_1, .speed = 0};
@@ -155,45 +158,90 @@ void App_flight_pid_process(void)
  */
 void App_flight_control_motor(void)
 {
+    // 失控缓降：故障时逐步减小油门，避免直接坠机
+    static uint16_t failsafe_thr = 0;
+    static uint8_t  failsafe_initialized = 0;
+
     // 1.判断飞行状态
     switch (flight_state)
     {
     case FLIGHT_IDLE:
-        // 加锁状态的话将电机设置为0
+        // 加锁状态 → 电机全停，重置失控缓降状态
         left_top_motor.speed = 0;
         left_bottom_motor.speed = 0;
         right_top_motor.speed = 0;
         right_bottom_motor.speed = 0;
+        failsafe_initialized = 0;
+        failsafe_thr = 0;
 
         break;
+
     case FLIGHT_NORMAL:
-        // 俯仰角，往前飞正误差，前面两个电机转的慢，后面两个电机转的快
+        // 正常运行 → 重置失控缓降状态
+        failsafe_initialized = 0;
+        failsafe_thr = 0;
+
         left_top_motor.speed = remote_data.thr + gyro_y_pid.output - gyro_x_pid.output + Com_limit(gyro_z_pid.output, 100, -100);
         left_bottom_motor.speed = remote_data.thr - gyro_y_pid.output - gyro_x_pid.output - Com_limit(gyro_z_pid.output, 100, -100);
         right_top_motor.speed = remote_data.thr + gyro_y_pid.output + gyro_x_pid.output - Com_limit(gyro_z_pid.output, 100, -100);
         right_bottom_motor.speed = remote_data.thr - gyro_y_pid.output + gyro_x_pid.output + Com_limit(gyro_z_pid.output, 100, -100);
         break;
+
     case FLIGHT_FIX_HEIGHT:
-        // 只有在定高状态才需要进行pid计算，定高状态也需要平稳飞行
+        // 正常运行 → 重置失控缓降状态
+        failsafe_initialized = 0;
+        failsafe_thr = 0;
+
         left_top_motor.speed = remote_data.thr + gyro_y_pid.output - gyro_x_pid.output + Com_limit(gyro_z_pid.output, 100, -100) + fix_height_pid.output;
         left_bottom_motor.speed = remote_data.thr - gyro_y_pid.output - gyro_x_pid.output - Com_limit(gyro_z_pid.output, 100, -100) + fix_height_pid.output;
         right_top_motor.speed = remote_data.thr + gyro_y_pid.output + gyro_x_pid.output - Com_limit(gyro_z_pid.output, 100, -100) + fix_height_pid.output;
         right_bottom_motor.speed = remote_data.thr - gyro_y_pid.output + gyro_x_pid.output + Com_limit(gyro_z_pid.output, 100, -100) + fix_height_pid.output;
         break;
+
     case FLIGHT_FAIL:
+        // 失控缓降：用当前油门作为起始值，每周期递减直到0
+        if (!failsafe_initialized)
+        {
+            failsafe_thr = remote_data.thr; // 记录失控瞬间的油门值
+            failsafe_initialized = 1;
+            App_flight_reset_all_pid();      // 清零PID，防止积分在缓降期间累积
+        }
+
+        // 每周期递减油门（6ms * 50 = 300ms降50，约2-3秒从悬停油门降到0）
+        if (failsafe_thr > 10)
+        {
+            failsafe_thr -= 10;
+        }
+        else
+        {
+            failsafe_thr = 0;
+        }
+
+        // 缓降期间保持姿态稳定（PID仍在计算），只降低基础油门
+        left_top_motor.speed    = failsafe_thr + gyro_y_pid.output - gyro_x_pid.output + Com_limit(gyro_z_pid.output, 100, -100);
+        left_bottom_motor.speed = failsafe_thr - gyro_y_pid.output - gyro_x_pid.output - Com_limit(gyro_z_pid.output, 100, -100);
+        right_top_motor.speed   = failsafe_thr + gyro_y_pid.output + gyro_x_pid.output - Com_limit(gyro_z_pid.output, 100, -100);
+        right_bottom_motor.speed = failsafe_thr - gyro_y_pid.output + gyro_x_pid.output + Com_limit(gyro_z_pid.output, 100, -100);
+
+        // 油门降到0后切回空闲
+        if (failsafe_thr == 0)
+        {
+            flight_state = FLIGHT_IDLE;
+        }
         break;
+
     default:
         break;
     }
 
-    // 限制电机上限值
+    // 限制电机输出范围
     left_top_motor.speed = Com_limit(left_top_motor.speed, 600, 0);
     left_bottom_motor.speed = Com_limit(left_bottom_motor.speed, 600, 0);
     right_top_motor.speed = Com_limit(right_top_motor.speed, 600, 0);
     right_bottom_motor.speed = Com_limit(right_bottom_motor.speed, 600, 0);
 
-    // 安全限制,当油门设置为<50时，强制将速度设置为0
-    if (remote_data.thr < 50)
+    // 安全限制：油门<50时强制停转（仅在非故障状态下生效）
+    if (flight_state != FLIGHT_FAIL && remote_data.thr < 50)
     {
         left_top_motor.speed = 0;
         left_bottom_motor.speed = 0;
@@ -201,7 +249,7 @@ void App_flight_control_motor(void)
         right_bottom_motor.speed = 0;
     }
 
-    // 2.设置点击速度
+    // 2.设置电机速度
     Int_Motor_SetSpeed(&left_top_motor);
     Int_Motor_SetSpeed(&left_bottom_motor);
     Int_Motor_SetSpeed(&right_top_motor);
@@ -221,4 +269,18 @@ void App_flight_fix_height_PID_process(void)
 
     // 2.单环计算pid
     Com_pid_calc(&fix_height_pid);
+}
+
+/**
+ * @brief 复位所有PID（清零积分和误差）
+ */
+void App_flight_reset_all_pid(void)
+{
+    Com_pid_reset(&pitch_pid);
+    Com_pid_reset(&gyro_y_pid);
+    Com_pid_reset(&roll_pid);
+    Com_pid_reset(&gyro_x_pid);
+    Com_pid_reset(&yaw_pid);
+    Com_pid_reset(&gyro_z_pid);
+    Com_pid_reset(&fix_height_pid);
 }

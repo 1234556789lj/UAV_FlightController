@@ -93,14 +93,13 @@ uint8_t Int_SI24R1_Read_Buf(uint8_t reg, uint8_t *pBuf, uint8_t bytes)
 void Int_SI24R1_RX_Mode(void)
 {
 	CE_LOW;
-	Int_SI24R1_Write_Buf(SI24R1_WRITE_REG + RX_ADDR_P0, TX_ADDRESS, TX_ADR_WIDTH); // 接收设备接收通道0使用和发送设备相同的发送地址
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + EN_AA, 0x01);						   // 使能接收通道0自动应答
+	Int_SI24R1_Write_Buf(SI24R1_WRITE_REG + RX_ADDR_P0, TX_ADDRESS, TX_ADR_WIDTH); // 接收通道0地址
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + EN_AA, 0x01);						   // 使能通道0自动应答
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + EN_RXADDR, 0x01);					   // 使能接收通道0
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_CH, 40);							   // 选择射频通道0x40
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RX_PW_P0, TX_PLOAD_WIDTH);			   // 接收通道0选择和发送通道相同有效数据宽度
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_SETUP, 0x0f);					   // 数据传输率1 Mbps
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_CH, CHANNEL_RF);					   // 射频信道（避开WiFi频段）
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RX_PW_P0, TX_PLOAD_WIDTH);			   // 接收通道0有效数据宽度
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_SETUP, RF_CONFIG);				   // 数据速率+发射功率
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + CONFIG, 0x0f);						   // CRC使能，16位CRC校验，上电，接收模式
-	// Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, 0xff);						   // 清除所有的中断标志位
 	CE_HIGH; // 拉高CE启动接收设备
 }
 
@@ -113,14 +112,14 @@ void Int_SI24R1_TX_Mode(void)
 {
 	CE_LOW;
 	Int_SI24R1_Write_Buf(SI24R1_WRITE_REG + TX_ADDR, TX_ADDRESS, TX_ADR_WIDTH);	   // 写入发送地址
-	Int_SI24R1_Write_Buf(SI24R1_WRITE_REG + RX_ADDR_P0, TX_ADDRESS, TX_ADR_WIDTH); // 为了应答接收设备，接收通道0地址和发送地址相同
+	Int_SI24R1_Write_Buf(SI24R1_WRITE_REG + RX_ADDR_P0, TX_ADDRESS, TX_ADR_WIDTH); // 接收通道0地址与发送地址相同（用于接收ACK）
 
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + EN_AA, 0x01);	   // 使能接收通道0自动应答
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + EN_AA, 0x01);	   // 使能通道0自动应答
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + EN_RXADDR, 0x01);  // 使能接收通道0
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + SETUP_RETR, 0x0a); // 自动重发延时等待250us+86us，自动重发5次
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_CH, 40);		   // 选择射频通道0x40
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_SETUP, 0x0f);   // 数据传输率1Mbps，发射功率4dBm
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + CONFIG, 0x0e);	   // CRC使能，16位CRC校验，上电
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + SETUP_RETR, 0x2a); // 自动重发：500us+86us延迟，重试10次
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_CH, CHANNEL_RF);	   // 射频信道
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + RF_SETUP, RF_CONFIG);   // 数据速率+发射功率
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + CONFIG, 0x0e);	   // CRC使能，16位CRC校验，上电，发送模式
 	CE_HIGH;
 }
 
@@ -133,17 +132,19 @@ void Int_SI24R1_TX_Mode(void)
 uint8_t Int_SI24R1_RxPacket(uint8_t *rxbuf)
 {
 	uint8_t state;
-	state = Int_SI24R1_Read_Reg(STATUS);					// 读取状态寄存器的值
-	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, state); // 清除RX_DS中断标志
+	state = Int_SI24R1_Read_Reg(STATUS); // 读取状态寄存器
 
 	if (state & RX_DR) // 接收到数据
 	{
-		Int_SI24R1_Read_Buf(SI24R1_READ_REG + RD_RX_PLOAD, rxbuf, TX_PLOAD_WIDTH); // 读取数据
-		Int_SI24R1_Write_Reg(FLUSH_RX, 0xff);									   // 清除RX FIFO寄存器
+		Int_SI24R1_Read_Buf(SI24R1_READ_REG + RD_RX_PLOAD, rxbuf, TX_PLOAD_WIDTH); // 读取payload
+		Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, RX_DR);					   // 仅清除RX_DR中断标志
+		Int_SI24R1_Write_Reg(FLUSH_RX, 0xff);									   // 清除RX FIFO
 
 		return 0;
 	}
-	return 1; // 没收到任何数据
+	// 未收到数据，也清除可能残留的中断标志
+	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, RX_DR | TX_DS | MAX_RT);
+	return 1;
 }
 
 /********************************************************
@@ -154,13 +155,13 @@ uint8_t Int_SI24R1_RxPacket(uint8_t *rxbuf)
 uint8_t Int_SI24R1_TxPacket(uint8_t *txbuf)
 {
 	uint8_t state;
-	uint16_t timeout = 1000; // 超时计数（可根据重发延时调整）
+	uint16_t timeout = 1000; // 超时计数
 
-	CE_LOW;													  // CE拉低，使能配置
+	CE_LOW;
 	Int_SI24R1_Write_Buf(WR_TX_PLOAD, txbuf, TX_PLOAD_WIDTH); // 写入TX FIFO
 	CE_HIGH;												  // CE置高，启动发送
 
-	/* 等待发送完成或达到最大重发次数，加入超时保护 */
+	/* 等待发送完成或达到最大重发次数 */
 	state = Int_SI24R1_Read_Reg(STATUS);
 	while (((state & TX_DS) == 0) && ((state & MAX_RT) == 0) && (--timeout))
 	{
@@ -172,34 +173,29 @@ uint8_t Int_SI24R1_TxPacket(uint8_t *txbuf)
 	if (timeout == 0)
 	{
 		CE_LOW;
-		Int_SI24R1_Write_Reg(FLUSH_TX, 0xff); // 清空TX FIFO
+		Int_SI24R1_Write_Reg(FLUSH_TX, 0xff);
 		CE_HIGH;
-		Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, TX_DS | MAX_RT); // 清除可能的中断
-		return 1;														 // 超时视为发送失败
+		Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, MAX_RT);
+		return 1;
 	}
 
-	/* 清除 TX_DS 或 MAX_RT 中断标志，注意只清除这两个位，保留其他中断（如 RX_DR） */
+	/* 清除本次发送相关的中断标志 */
 	Int_SI24R1_Write_Reg(SI24R1_WRITE_REG + STATUS, state & (TX_DS | MAX_RT));
 
 	if (state & MAX_RT) // 达到最大重发次数
 	{
 		CE_LOW;
-		Int_SI24R1_Write_Reg(FLUSH_TX, 0xff); // 清空TX FIFO
+		Int_SI24R1_Write_Reg(FLUSH_TX, 0xff);
 		CE_HIGH;
 		return 1;
 	}
 
 	if (state & TX_DS) // 发送成功
 	{
-		/*
-		 * 如果系统是双向通信（无人机与遥控器），强烈建议在此切回接收模式
-		 * 取消下面注释即可自动切换：
-		 * Int_SI24R1_RX_Mode();
-		 */
 		return 0;
 	}
 
-	return 1; // 其他未知情况，返回失败
+	return 1;
 }
 
 /********************************************************
@@ -237,14 +233,14 @@ uint8_t Int_SI24R1_Check(void)
 void Int_SI24R1_Init(void)
 {
 	// 上电后芯片延迟
-	HAL_Delay(200);
+	vTaskDelay(200);
 	// 校验检测
 	while (Int_SI24R1_Check() == 1)
 	{
 		// 每两次检测间隔10ms
-		HAL_Delay(10);
+		vTaskDelay(10);
 	}
-	// 初始化完成，设置默认模式为接收，每次发完数据切换为发送状态
+	// 初始化完成，设置默认模式为接收
 	Int_SI24R1_RX_Mode();
 	debug_printf("SI24R1 init success\n");
 }

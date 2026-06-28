@@ -30,7 +30,7 @@ TaskHandle_t powerTaskHandle = NULL;
 
 // flight电机任务
 void Flight_Motor_Task(void *pvParameters);
-#define FLIGHT_MOTOR_TASK_STACK_SIZE 128
+#define FLIGHT_MOTOR_TASK_STACK_SIZE 256   // 浮点+四元数+PID 需要较大栈空间
 #define FLIGHT_MOTOR_TASK_PRIORITY 3
 #define FLIGHT_MOTOR_TASK_PERIOD 6
 TaskHandle_t flightMotorTaskHandle = NULL;

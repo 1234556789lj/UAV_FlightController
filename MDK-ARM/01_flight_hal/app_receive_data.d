@@ -54,3 +54,11 @@
 01_flight_hal\app_receive_data.o: ../Core/Inc/i2c.h
 01_flight_hal\app_receive_data.o: ./interface/fix_height/VL53L1X_api.h
 01_flight_hal\app_receive_data.o: ./interface/fix_height/VL53L1X_calibration.h
+01_flight_hal\app_receive_data.o: application\App_flight.h
+01_flight_hal\app_receive_data.o: ./interface/Int_mpu6050.h
+01_flight_hal\app_receive_data.o: ./common/Com_filter.h
+01_flight_hal\app_receive_data.o: D:\keil5\ARM\ARMCC\Bin\..\include\math.h
+01_flight_hal\app_receive_data.o: ./common/Com_imu.h
+01_flight_hal\app_receive_data.o: ./common/Com_pid.h
+01_flight_hal\app_receive_data.o: ./interface/Int_Motor.h
+01_flight_hal\app_receive_data.o: ../Core/Inc/tim.h

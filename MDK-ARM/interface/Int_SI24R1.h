@@ -15,10 +15,20 @@
 // CE信号
 #define CE_HIGH HAL_GPIO_WritePin(SI_EN_GPIO_Port, SI_EN_Pin, GPIO_PIN_SET)
 #define CE_LOW HAL_GPIO_WritePin(SI_EN_GPIO_Port, SI_EN_Pin, GPIO_PIN_RESET)
-// 选择使用的射频通道
-#define CHANNEL 40
-#define TX_ADR_WIDTH 5    // 5字节的地址宽度
-#define TX_PLOAD_WIDTH 17 // 32字节的用户数据宽度
+// ==================== RF 射频配置 ====================
+// 信道选择：2400MHz + CHANNEL_RF MHz
+// WiFi信道1=2412, 6=2437, 11=2462 (各占22MHz)
+// 避开WiFi: 选CH28=2428MHz (远离WiFi CH1的2412和CH6的2437)
+//           或CH70=2470MHz (远离WiFi CH11的2462)
+#define CHANNEL_RF      28       // 射频信道 (2428MHz，避开常用WiFi信道)
+
+// RF_SETUP寄存器: 数据速率1Mbps + 发射功率
+// bit7=0(CONT_WAVE) bit5=0 bit3=1(RF_DR_HIGH,1Mbps) bit2:1=11(RF_PWR)
+// SI24R1: RF_PWR=11 → 7dBm (需配合), 标准模式0dBm
+// 0x07 = 0b00000111: 1Mbps, 7dBm (SI24R1高功率模式已使能)
+#define RF_CONFIG       0x07    // 1Mbps + 最大发射功率
+#define TX_ADR_WIDTH    5       // 5字节地址宽度
+#define TX_PLOAD_WIDTH  17      // 17字节用户数据宽度
 
 //********************************************************************************************************************//
 // SPI(SI24R1) commands

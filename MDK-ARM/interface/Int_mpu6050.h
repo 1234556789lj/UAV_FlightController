@@ -88,10 +88,15 @@ void Int_mpu6050_get_Gyro(Gyro_Data *gyro);
  */
 void Int_mpu6050_get_Accel(Acc_Data *accel);
 /**
- * @brief 获取所有数据
+ * @brief 获取所有数据（burst read，单次14字节I2C事务）
  *
  * @param data 所有数据
  */
 void Int_mpu6050_GetAllData(Gyro_Acc_Data *data);
+
+/**
+ * @brief 获取I2C通信错误计数（用于诊断）
+ */
+uint32_t Int_mpu6050_GetErrorCount(void);
 
 #endif

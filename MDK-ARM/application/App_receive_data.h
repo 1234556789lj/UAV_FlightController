@@ -13,8 +13,10 @@
 #define FRAME_HEAD_CHECK2 'r'
 #define FRAME_HEAD_CHECK3 'j'
 
-// 最大重试次数
-#define MAX_RETRY_TIMES 100
+// 通信超时阈值（FreeRTOS tick，1 tick = 1ms）
+// 注意：Com_Task周期为6ms，遥控器发送周期可能更慢
+#define REMOTE_LOST_TICK_MS    300   // LED断连指示超时（300ms无数据→亮断连灯）
+#define FAILSAFE_TICK_MS       1000  // 失控保护超时（1000ms无数据→触发FAIL）
 
 typedef struct
 {
